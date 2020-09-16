@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="A jQuery plugin wrapper for Cropper.js.">
+    <meta name="author" content="Chen Fengyuan">
+
+    <title>jquery-cropper</title>
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/cropper.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="row my-3">
+
+            <div class=" col-sm-12">
+
+                <form id="edit" autocomplete="off" enctype="multipart/form-data">
+                    <div class="card mb-2">
+                        <div class="card-header">ตั้งค่า</div>
+                        <div class="card-body">
+
+                            <div class="col-sm-12 d-flex justify-content-center mb-2">
+                                <img src="images/new.jpg" id="old-img" class="img-thumbnail"
+                                    style="width: 8em; border-radius: 50%;">
+                                <div id="result-img"></div>
+                                <!--<img src="" id="new-img" class="img-thumbnail" style="width: 8em; border-radius: 50%;">-->
+                            </div>
+
+                            <div class="form-group">
+                                <lable for="lname">รูปบริษัท</lable>
+                                <input type="file" id="input-file" name="img" accept="image/png, image/jpeg, image/gif"
+                                    class="form-control" required>
+                                <input type="hidden" id="img-profile" name="img-profile">
+                            </div>
+                            <div class="form-group">
+                                <lable for="lname">ชื่อบริษัท</lable>
+                                <input type="text" id="name" name="name" value="นำชัย คอมพานี" class="form-control"
+                                    required>
+                            </div>
+
+                        </div>
+                        <div class="card-footer text-right">
+                            <button type="reset" class="btn btn-danger">ยกเลิก</button>
+                            <button type="submit" class="btn btn-success">บันทึก</button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="modal fade" tabindex="-1" id="exampleModal" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <img id="image" class="img-thumbnail">
+                    <button id="crop" class="btn btn-block btn-info mt-3">แก้ไขรูปภาพ</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"
+        integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+    <script src="js/cropper.js"></script>
+
+    <script>
+        $("#edit").submit(function (event) {
+
+            event.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: 'save.php',
+                type: 'POST',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function (res) {
+                    console.log(res);
+                    document.getElementById('edit').reset();
+                },
+            });
+
+
+        });
+
+        $('#input-file').change(function (event) {
+
+            var input = event.target;
+            var reader = new FileReader();
+
+            reader.onload = function () {
+
+                var dataURL = reader.result;
+                var output = document.getElementById('image');
+                output.src = dataURL;
+            };
+
+            reader.readAsDataURL(input.files[0]);
+
+            $(function () {
+
+                var $image = $('#image');
+                var cropBoxData;
+                var canvasData;
+
+                $('#exampleModal').on('shown.bs.modal', function () {
+                    $image.cropper({
+                        aspectRatio: 1 / 1,
+                        ready: function () {
+                            $image.cropper('setCanvasData', canvasData);
+                            $image.cropper('setCropBoxData', cropBoxData);
+                        }
+                    });
+                }).on('hidden.bs.modal', function () {
+                    $image.cropper('destroy');
+                });
+
+            });
+
+            $('#exampleModal').modal('show');
+        });
+
+        $('#crop').click(function () {
+
+            var imageData = $('#image').cropper('getCroppedCanvas').toDataURL();
+            //var value = $.base64.decode(imageData);
+
+            //console.log(imageData);
+
+            $('#old-img').hide();
+            $('#exampleModal').modal('hide');
+
+            $('#img-profile').val(imageData);
+            //$("#input-file").attr('value', imageData);
+
+            $('#result-img').html('<img src="' + imageData + '" id="new-img" class="img-thumbnail" style="width: 8em; border-radius: 50%;">')
+
+
+        });
+
+
+    </script>
+</body>
+
+</html>
